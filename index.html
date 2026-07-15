@@ -10,16 +10,13 @@
       --bg0:#070b12;
       --bg1:#0b1220;
       --panel: rgba(255,255,255,.06);
-      --panel2: rgba(255,255,255,.04);
       --border: rgba(255,255,255,.10);
-      --border2: rgba(255,255,255,.14);
       --text: rgba(236,246,255,.96);
       --muted: rgba(170,190,210,.92);
 
       --teal:#2ee9c6;
       --violet:#a78bfa;
       --cyan:#22d3ee;
-      --pink:#fb7185;
 
       --shadow: 0 22px 70px rgba(0,0,0,.55);
       --radius: 22px;
@@ -27,15 +24,13 @@
 
     *{ box-sizing:border-box; }
     html,body{ height:100%; }
+
+    /* CLEANER BACKGROUND (no extra glowing blobs) */
     body{
       margin:0;
       font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
       color: var(--text);
-      background:
-        radial-gradient(900px 420px at 20% -10%, rgba(34,211,238,.18), transparent 60%),
-        radial-gradient(900px 420px at 90% 10%, rgba(167,139,250,.18), transparent 60%),
-        radial-gradient(800px 380px at 50% 105%, rgba(46,233,198,.13), transparent 58%),
-        linear-gradient(180deg, var(--bg0), var(--bg1));
+      background: linear-gradient(180deg, var(--bg0), var(--bg1));
       display:flex;
       align-items:center;
       justify-content:center;
@@ -44,7 +39,6 @@
 
     .wrap{ width: min(1080px, 100%); }
 
-    /* top glass card */
     .card{
       background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
       border: 1px solid var(--border);
@@ -54,23 +48,19 @@
       position:relative;
     }
 
-    /* soft glow borders */
+    /* Keep only subtle glow */
     .card::before{
       content:"";
       position:absolute; inset:-2px;
       background:
-        radial-gradient(500px 180px at 20% 0%, rgba(34,211,238,.22), transparent 60%),
-        radial-gradient(500px 180px at 90% 10%, rgba(167,139,250,.22), transparent 60%),
-        radial-gradient(500px 180px at 50% 100%, rgba(46,233,198,.16), transparent 60%);
+        radial-gradient(420px 160px at 25% 0%, rgba(34,211,238,.12), transparent 60%),
+        radial-gradient(420px 160px at 80% 10%, rgba(167,139,250,.10), transparent 60%);
       filter: blur(14px);
-      opacity:.55;
+      opacity:.35;
       pointer-events:none;
     }
 
-    .card-inner{
-      position:relative;
-      padding: 20px;
-    }
+    .card-inner{ position:relative; padding: 20px; }
 
     .topbar{
       display:flex;
@@ -80,12 +70,7 @@
       padding: 6px 6px 18px;
     }
 
-    .brand{
-      display:flex;
-      flex-direction:column;
-      gap:6px;
-    }
-
+    .brand{ display:flex; flex-direction:column; gap:6px; }
     .brand h1{
       margin:0;
       font-size: 18px;
@@ -95,15 +80,13 @@
       align-items:center;
       gap:10px;
     }
-
     .dot{
       width: 10px; height: 10px;
       border-radius: 50%;
       background: conic-gradient(from 180deg, var(--teal), var(--cyan), var(--violet), var(--teal));
-      box-shadow: 0 0 0 4px rgba(255,255,255,.04), 0 0 30px rgba(34,211,238,.35);
+      box-shadow: 0 0 0 4px rgba(255,255,255,.04), 0 0 30px rgba(34,211,238,.25);
       flex: 0 0 auto;
     }
-
     .sub{
       margin:0;
       color: var(--muted);
@@ -117,12 +100,11 @@
       gap:10px;
       align-items:center;
       border: 1px solid var(--border);
-      background: rgba(0,0,0,.18);
+      background: rgba(0,0,0,.14);
       border-radius: 16px;
       padding: 10px 12px;
       backdrop-filter: blur(10px);
     }
-
     .search svg{ opacity:.9; }
     .search input{
       width:100%;
@@ -134,7 +116,6 @@
     }
     .search input::placeholder{ color: rgba(170,190,210,.75); }
 
-    /* grid of language panels */
     .grid{
       display:grid;
       grid-template-columns: 1fr;
@@ -147,24 +128,15 @@
     .panel{
       border: 1px solid var(--border);
       border-radius: 18px;
-      background: rgba(0,0,0,.16);
+      background: rgba(0,0,0,.12);
       overflow:hidden;
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(8px);
       position:relative;
       isolation:isolate;
     }
 
-    .panel::after{
-      content:"";
-      position:absolute; inset:-1px;
-      background:
-        radial-gradient(320px 110px at 20% 0%, rgba(255,255,255,.08), transparent 60%),
-        radial-gradient(380px 150px at 95% 0%, rgba(255,255,255,.05), transparent 60%);
-      pointer-events:none;
-      z-index:0;
-    }
-
-    .panel > *{ position:relative; z-index:1; }
+    /* remove extra glow layers inside panels */
+    .panel::after{ content:none; }
 
     .panel-head{
       padding: 12px 14px;
@@ -176,11 +148,7 @@
       background: rgba(255,255,255,.03);
     }
 
-    .lang{
-      display:flex; align-items:center; gap:10px;
-      min-width: 0;
-    }
-
+    .lang{ display:flex; align-items:center; gap:10px; min-width:0; }
     .badge{
       width: 38px; height: 38px;
       border-radius: 14px;
@@ -190,13 +158,9 @@
       box-shadow: 0 10px 30px rgba(0,0,0,.28);
       flex: 0 0 auto;
     }
-
     .badge svg{ filter: drop-shadow(0 8px 14px rgba(0,0,0,.35)); }
 
-    .lang-title{
-      display:flex; flex-direction:column; gap:2px; min-width:0;
-    }
-
+    .lang-title{ display:flex; flex-direction:column; gap:2px; min-width:0; }
     .lang-title strong{
       font-size: 13px;
       letter-spacing:.22em;
@@ -223,7 +187,6 @@
       gap:8px;
       user-select:none;
     }
-
     .count-pill i{
       width:7px; height:7px; border-radius:50%;
       display:inline-block;
@@ -246,7 +209,6 @@
       background: rgba(255,255,255,.02);
       transition: transform .12s ease, border-color .15s ease, background .15s ease;
     }
-
     .cmd:hover{
       transform: translateY(-1px);
       border-color: rgba(255,255,255,.18);
@@ -278,44 +240,15 @@
       letter-spacing:.2px;
       transition: transform .05s ease, filter .15s ease;
       user-select:none;
+      background: rgba(255,255,255,.06);
     }
     .copy:active{ transform: translateY(1px); }
     .copy:hover{ filter: brightness(1.05); }
 
-    /* per-panel accent */
-    .panel.dart .badge{ background: rgba(46,233,198,.12); }
+    /* accents */
     .panel.dart .copy{ background: rgba(46,233,198,.22); }
-    .panel.dart .copy .icon{ color: rgba(46,233,198,.95); }
-
-    .panel.flutter .badge{ background: rgba(167,139,250,.14); }
     .panel.flutter .copy{ background: rgba(167,139,250,.22); }
-    .panel.flutter .copy .icon{ color: rgba(167,139,250,.95); }
-
-    .panel.jsx .badge{ background: rgba(34,211,238,.14); }
     .panel.jsx .copy{ background: rgba(34,211,238,.22); }
-    .panel.jsx .copy .icon{ color: rgba(34,211,238,.95); }
-
-    /* toast */
-    .toast{
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 22px;
-      background: rgba(0,0,0,.55);
-      border: 1px solid rgba(255,255,255,.14);
-      color: rgba(236,246,255,.95);
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-size: 13px;
-      display:none;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 20px 60px rgba(0,0,0,.5);
-    }
-    .toast.show{ display:block; animation: pop .2s ease; }
-    @keyframes pop{
-      from{ opacity:0; transform: translateX(-50%) translateY(6px); }
-      to{ opacity:1; transform: translateX(-50%) translateY(0); }
-    }
 
     .hintbar{
       margin-top: 14px;
@@ -340,6 +273,27 @@
       color: rgba(220,235,255,.95);
       font-size: 12px;
     }
+
+    .toast{
+      position: fixed;
+      left: 50%;
+      transform: translateX(-50%);
+      bottom: 22px;
+      background: rgba(0,0,0,.55);
+      border: 1px solid rgba(255,255,255,.14);
+      color: rgba(236,246,255,.95);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-size: 13px;
+      display:none;
+      backdrop-filter: blur(12px);
+      box-shadow: 0 20px 60px rgba(0,0,0,.5);
+    }
+    .toast.show{ display:block; animation: pop .2s ease; }
+    @keyframes pop{
+      from{ opacity:0; transform: translateX(-50%) translateY(6px); }
+      to{ opacity:1; transform: translateX(-50%) translateY(0); }
+    }
   </style>
 </head>
 <body>
@@ -362,12 +316,10 @@
         </div>
 
         <div class="grid">
-          <!-- Dart -->
           <section class="panel dart" data-lang="dart">
             <div class="panel-head">
               <div class="lang">
                 <div class="badge" aria-hidden="true">
-                  <!-- dart icon -->
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path d="M7 17 17 7" stroke="rgba(46,233,198,.95)" stroke-width="2" stroke-linecap="round"/>
                     <path d="M9 15 7 17l-2-2 2-2 2 2Z" fill="rgba(46,233,198,.95)" opacity=".95"/>
@@ -381,46 +333,33 @@
                   <span>CLI & tooling</span>
                 </div>
               </div>
-              <div class="count-pill" title="Number of commands"><i style="background: rgba(46,233,198,.7)"></i><span class="count">4</span></div>
+              <div class="count-pill"><i style="background: rgba(46,233,198,.7)"></i><span class="count">4</span></div>
             </div>
 
             <div class="panel-body">
               <div class="cmd" data-text="dart --version">
                 <div class="code">dart --version</div>
-                <button class="copy" data-copy-btn data-accent="teal" title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
-
               <div class="cmd" data-text="dart run main.dart">
                 <div class="code">dart run main.dart</div>
-                <button class="copy" data-copy-btn data-accent="teal" title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
-
               <div class="cmd" data-text="dart format .">
                 <div class="code">dart format .</div>
-                <button class="copy" data-copy-btn data-accent="teal" title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
-
               <div class="cmd" data-text="dart analyze">
                 <div class="code">dart analyze</div>
-                <button class="copy" data-copy-btn data-accent="teal" title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
             </div>
           </section>
 
-          <!-- Flutter -->
           <section class="panel flutter" data-lang="flutter">
             <div class="panel-head">
               <div class="lang">
                 <div class="badge" aria-hidden="true">
-                  <!-- flutter icon-ish -->
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path d="M7.2 7.2c4.8 3.5 8.8 1.7 9.6 4.6.7 2.5-1 4.8-3.6 5.3-2.6.5-5.3-.7-6.8-2.6" stroke="rgba(167,139,250,.95)" stroke-width="2" stroke-linecap="round"/>
                     <path d="M6 12h6l-2-3" stroke="rgba(167,139,250,.95)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
@@ -432,46 +371,33 @@
                   <span>Apps & builds</span>
                 </div>
               </div>
-              <div class="count-pill" title="Number of commands"><i style="background: rgba(167,139,250,.75)"></i><span class="count">4</span></div>
+              <div class="count-pill"><i style="background: rgba(167,139,250,.7)"></i><span class="count">4</span></div>
             </div>
 
             <div class="panel-body">
               <div class="cmd" data-text="flutter doctor">
                 <div class="code">flutter doctor</div>
-                <button class="copy" data-copy-btn title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
-
               <div class="cmd" data-text="flutter pub get">
                 <div class="code">flutter pub get</div>
-                <button class="copy" data-copy-btn title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
-
               <div class="cmd" data-text="flutter run">
                 <div class="code">flutter run</div>
-                <button class="copy" data-copy-btn title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
-
               <div class="cmd" data-text="flutter build apk">
                 <div class="code">flutter build apk</div>
-                <button class="copy" data-copy-btn title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
             </div>
           </section>
 
-          <!-- JSX / React -->
           <section class="panel jsx" data-lang="jsx">
             <div class="panel-head">
               <div class="lang">
                 <div class="badge" aria-hidden="true">
-                  <!-- react-like icon -->
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
                     <path d="M12 3c2.7 0 5 1.2 6.6 3.1" stroke="rgba(34,211,238,.95)" stroke-width="2" stroke-linecap="round"/>
                     <path d="M21 12c0 2.7-1.2 5-3.1 6.6" stroke="rgba(34,211,238,.95)" stroke-width="2" stroke-linecap="round"/>
@@ -485,36 +411,25 @@
                   <span>Node scripts</span>
                 </div>
               </div>
-              <div class="count-pill" title="Number of commands"><i style="background: rgba(34,211,238,.7)"></i><span class="count">4</span></div>
+              <div class="count-pill"><i style="background: rgba(34,211,238,.7)"></i><span class="count">4</span></div>
             </div>
 
             <div class="panel-body">
               <div class="cmd" data-text="npm install">
                 <div class="code">npm install</div>
-                <button class="copy" data-copy-btn title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
-
               <div class="cmd" data-text="npm run dev">
                 <div class="code">npm run dev</div>
-                <button class="copy" data-copy-btn title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
-
               <div class="cmd" data-text="npm start">
                 <div class="code">npm start</div>
-                <button class="copy" data-copy-btn title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
-
               <div class="cmd" data-text="npm run build">
                 <div class="code">npm run build</div>
-                <button class="copy" data-copy-btn title="Copy">
-                  <span class="icon">⧉</span> Copy
-                </button>
+                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
               </div>
             </div>
           </section>
@@ -532,7 +447,6 @@
 
   <script>
     const toast = document.getElementById("toast");
-
     function showToast(msg){
       toast.textContent = msg;
       toast.classList.add("show");
@@ -540,7 +454,6 @@
       showToast._t = setTimeout(() => toast.classList.remove("show"), 900);
     }
 
-    // Copy wiring
     document.querySelectorAll("[data-copy-btn]").forEach(btn => {
       btn.addEventListener("click", async () => {
         const cmd = btn.parentElement?.querySelector(".code")?.textContent?.trim();
@@ -561,7 +474,6 @@
       });
     });
 
-    // Filter commands
     const filter = document.getElementById("filter");
     const panels = Array.from(document.querySelectorAll(".panel"));
 
@@ -587,4 +499,4 @@
 </html>
 ```
 
-If you want it even more “professional,” tell me: do you want **a dark + light mode toggle** and should the theme match **your brand colors** (send hex codes)?
+If you want it even more “clean” (solid background, no gradients at all), tell me: **solid black** or **solid dark blue**?
