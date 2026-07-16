@@ -1,464 +1,1790 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Command Accessor</title>
-  <style>
-    :root{
-      --bg0:#070b12;
-      --bg1:#0b1220;
-      --panel: rgba(255,255,255,.05);
-      --border: rgba(255,255,255,.10);
-      --text: rgba(236,246,255,.96);
-      --muted: rgba(170,190,210,.92);
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>System Command Vault</title>
+<style>
+    :root {
+        --bg-dark: #06090e;
+        --panel-bg: #0d1117;
+        --box-bg: #161b22;
+        --border-color: #21262d;
 
-      --teal:#2ee9c6;
-      --violet:#a78bfa;
-      --cyan:#22d3ee;
+        /* High-Intensity Glow Theme Matrix */
+        --neon-cyan: #00ffff;
+        --neon-purple: #d300ff;
+        --text-main: #c9d1d9;
+        --text-bold: #f0f6fc;
 
-      --shadow: 0 22px 70px rgba(0,0,0,.55);
-      --radius: 22px;
-    }
-
-    *{ box-sizing:border-box; }
-    html,body{ height:100%; }
-
-    body{
-      margin:0;
-      font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
-      color: var(--text);
-      background: linear-gradient(180deg, var(--bg0), var(--bg1));
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding: 28px 16px;
+        --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+        --font-mono: ui-monospace, SFMono-Regular, SF Mono, Menlo, Consolas, Liberation Mono, monospace;
     }
 
-    .wrap{ width: min(1080px, 100%); }
-
-    .card{
-      background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.03));
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      box-shadow: var(--shadow);
-      overflow:hidden;
-      position:relative;
+    * {
+        box-sizing: border-box;
     }
 
-    .card::before{
-      content:"";
-      position:absolute; inset:-2px;
-      background:
-        radial-gradient(420px 160px at 25% 0%, rgba(34,211,238,.12), transparent 60%),
-        radial-gradient(420px 160px at 80% 10%, rgba(167,139,250,.10), transparent 60%);
-      filter: blur(14px);
-      opacity:.30;
-      pointer-events:none;
+    body {
+        font-family: var(--font-sans);
+        background-color: var(--bg-dark);
+        background-image:
+            radial-gradient(at 10% 10%, rgba(0, 255, 255, 0.05) 0px, transparent 40%),
+            radial-gradient(at 90% 90%, rgba(211, 0, 255, 0.05) 0px, transparent 40%);
+        color: var(--text-main);
+        margin: 0;
+        padding: 40px 20px;
+        min-height: 100vh;
     }
 
-    .card-inner{ position:relative; padding: 20px; }
-
-    .topbar{
-      display:flex;
-      align-items:flex-start;
-      justify-content:space-between;
-      gap: 14px;
-      padding: 6px 6px 18px;
+    .container {
+        width: 100%;
+        max-width: 980px;
+        margin: 0 auto;
     }
 
-    .brand{ display:flex; flex-direction:column; gap:6px; }
-    .brand h1{
-      margin:0;
-      font-size: 18px;
-      letter-spacing:.3px;
-      font-weight: 850;
-      display:flex;
-      align-items:center;
-      gap:10px;
-    }
-    .dot{
-      width: 10px; height: 10px;
-      border-radius: 50%;
-      background: conic-gradient(from 180deg, var(--teal), var(--cyan), var(--violet), var(--teal));
-      box-shadow: 0 0 0 4px rgba(255,255,255,.04), 0 0 30px rgba(34,211,238,.25);
-      flex: 0 0 auto;
-    }
-    .sub{
-      margin:0;
-      color: var(--muted);
-      font-size: 13px;
-      line-height: 1.45;
+    header {
+        text-align: center;
+        margin-bottom: 40px;
     }
 
-    .search{
-      flex: 0 0 320px;
-      display:flex;
-      gap:10px;
-      align-items:center;
-      border: 1px solid var(--border);
-      background: rgba(0,0,0,.14);
-      border-radius: 16px;
-      padding: 10px 12px;
-      backdrop-filter: blur(10px);
+    .author-tag {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        color: var(--neon-purple);
+        margin-bottom: 8px;
+        font-weight: 700;
+        text-shadow: 0 0 10px var(--neon-purple), 0 0 20px rgba(211, 0, 255, 0.5);
     }
 
-    .search input{
-      width:100%;
-      border:0;
-      outline:0;
-      background: transparent;
-      color: var(--text);
-      font-size: 13px;
-    }
-    .search input::placeholder{ color: rgba(170,190,210,.75); }
-
-    .grid{
-      display:grid;
-      grid-template-columns: 1fr;
-      gap: 14px;
-    }
-    @media (min-width: 860px){
-      .grid{ grid-template-columns: repeat(3, 1fr); }
+    h1 {
+        font-size: 32px;
+        font-weight: 800;
+        margin: 0;
+        color: var(--text-bold);
+        letter-spacing: -0.5px;
+        text-shadow: 0 0 15px rgba(255, 255, 255, 0.2);
     }
 
-    .panel{
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      background: rgba(0,0,0,.12);
-      overflow:hidden;
-      backdrop-filter: blur(8px);
-      position:relative;
-      isolation:isolate;
-    }
-    .panel::after{ content:none; }
-
-    .panel-head{
-      padding: 12px 14px;
-      display:flex;
-      align-items:center;
-      justify-content:space-between;
-      gap: 10px;
-      border-bottom: 1px solid rgba(255,255,255,.08);
-      background: rgba(255,255,255,.03);
+    .section-card {
+        background-color: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 24px;
+        margin-bottom: 30px;
+        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        transition: border-color 0.3s ease, box-shadow 0.3s ease;
     }
 
-    .lang{ display:flex; align-items:center; gap:10px; min-width:0; }
-    .badge{
-      width: 38px; height: 38px;
-      border-radius: 14px;
-      display:grid;
-      place-items:center;
-      border: 1px solid rgba(255,255,255,.14);
-      box-shadow: 0 10px 30px rgba(0,0,0,.28);
-      flex: 0 0 auto;
+    .section-header {
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+        color: var(--text-bold);
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 12px;
     }
 
-    .lang-title{ display:flex; flex-direction:column; gap:2px; min-width:0; }
-    .lang-title strong{
-      font-size: 13px;
-      letter-spacing:.22em;
-      text-transform:uppercase;
-      font-weight: 900;
+    /* Clickable Header for Info Panels */
+    .clickable-header {
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        transition: color 0.2s ease;
     }
-    .lang-title span{
-      font-size: 12px;
-      color: var(--muted);
-      white-space:nowrap;
-      overflow:hidden;
-      text-overflow:ellipsis;
+    .clickable-header:hover {
+        color: var(--neon-cyan);
+        text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
     }
-
-    .count-pill{
-      padding: 8px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(255,255,255,.10);
-      background: rgba(255,255,255,.03);
-      font-size: 12px;
-      color: rgba(220,235,255,.92);
-      display:flex;
-      align-items:center;
-      gap:8px;
-      user-select:none;
-    }
-    .count-pill i{
-      width:7px; height:7px; border-radius:50%;
-      display:inline-block;
-      background: rgba(255,255,255,.45);
+    .info-hint-badge {
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--neon-purple);
+        border: 1px solid var(--neon-purple);
+        padding: 2px 8px;
+        border-radius: 4px;
+        box-shadow: 0 0 6px rgba(211, 0, 255, 0.2);
     }
 
-    .panel-body{
-      padding: 12px;
-      display:flex;
-      flex-direction:column;
-      gap: 10px;
+    .cmd-container-box {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: var(--box-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 16px 20px;
+        margin-bottom: 14px;
+        gap: 20px;
+        transition: all 0.25s ease;
     }
 
-    .cmd{
-      display:flex;
-      align-items:stretch;
-      border-radius: 14px;
-      border: 1px solid rgba(255,255,255,.10);
-      overflow:hidden;
-      background: rgba(255,255,255,.02);
-      transition: transform .12s ease, border-color .15s ease, background .15s ease;
-    }
-    .cmd:hover{
-      transform: translateY(-1px);
-      border-color: rgba(255,255,255,.18);
-      background: rgba(255,255,255,.03);
+    .cmd-container-box:hover {
+        border-color: rgba(0, 255, 255, 0.2);
+        box-shadow: 0 0 15px rgba(0, 255, 255, 0.05);
     }
 
-    .code{
-      flex:1;
-      padding: 12px;
-      font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
-      font-size: 12px;
-      color: rgba(225,241,255,.96);
-      overflow:auto;
-      white-space:nowrap;
-      scrollbar-width: thin;
+    .cmd-container-box:last-child {
+        margin-bottom: 0;
     }
 
-    .copy{
-      width: 92px;
-      border:0;
-      cursor:pointer;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      gap:10px;
-      padding: 0 12px;
-      color: #081018;
-      font-weight: 900;
-      letter-spacing:.2px;
-      transition: transform .05s ease, filter .15s ease;
-      user-select:none;
-      background: rgba(255,255,255,.06);
+    .cmd-string {
+        font-family: var(--font-mono);
+        font-size: 14px;
+        color: var(--neon-cyan);
+        white-space: pre-wrap;
+        word-break: break-all;
+        text-shadow: 0 0 6px rgba(0, 255, 255, 0.3);
     }
-    .copy:active{ transform: translateY(1px); }
-    .copy:hover{ filter: brightness(1.05); }
 
-    .panel.dart .copy{ background: rgba(46,233,198,.22); }
-    .panel.flutter .copy{ background: rgba(167,139,250,.22); }
-    .panel.jsx .copy{ background: rgba(34,211,238,.22); }
+    /* INTENSE NEON GLOWING BUTTONS */
+    .action-copy-btn {
+        background-color: transparent;
+        border: 2px solid var(--neon-cyan);
+        color: var(--neon-cyan);
+        padding: 8px 18px;
+        font-size: 11px;
+        font-weight: 800;
+        border-radius: 6px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        flex-shrink: 0;
+        transition: all 0.2s ease-in-out;
+        box-shadow:
+            0 0 8px rgba(0, 255, 255, 0.3),
+            inset 0 0 4px rgba(0, 255, 255, 0.2);
+        text-shadow: 0 0 4px rgba(0, 255, 255, 0.4);
+    }
 
-    .toast{
-      position: fixed;
-      left: 50%;
-      transform: translateX(-50%);
-      bottom: 22px;
-      background: rgba(0,0,0,.55);
-      border: 1px solid rgba(255,255,255,.14);
-      color: rgba(236,246,255,.95);
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-size: 13px;
-      display:none;
-      backdrop-filter: blur(12px);
-      box-shadow: 0 20px 60px rgba(0,0,0,.5);
-      z-index: 9999;
+    .action-copy-btn:hover {
+        color: #000000;
+        background-color: var(--neon-cyan);
+        box-shadow:
+            0 0 15px var(--neon-cyan),
+            0 0 30px rgba(0, 255, 255, 0.6),
+            0 0 45px rgba(0, 255, 255, 0.3);
+        transform: translateY(-1px);
     }
-    .toast.show{ display:block; animation: pop .2s ease; }
-    @keyframes pop{
-      from{ opacity:0; transform: translateX(-50%) translateY(6px); }
-      to{ opacity:1; transform: translateX(-50%) translateY(0); }
+
+    .action-copy-btn:active {
+        transform: translateY(1px);
     }
-  </style>
+
+    .action-copy-btn.success-state {
+        background-color: var(--neon-purple);
+        border-color: var(--neon-purple);
+        color: #ffffff;
+        box-shadow:
+            0 0 15px var(--neon-purple),
+            0 0 30px rgba(211, 0, 255, 0.7);
+        text-shadow: 0 0 4px #ffffff;
+    }
+
+    .cmd-run-box .cmd-string {
+        color: var(--neon-purple);
+        text-shadow: 0 0 6px rgba(211, 0, 255, 0.3);
+        font-size: 13px;
+    }
+
+    .action-run-btn {
+        background-color: transparent;
+        border: 2px solid var(--neon-purple);
+        color: var(--neon-purple);
+        padding: 8px 18px;
+        font-size: 11px;
+        font-weight: 800;
+        border-radius: 6px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1.5px;
+        flex-shrink: 0;
+        transition: all 0.2s ease-in-out;
+        box-shadow:
+            0 0 8px rgba(211, 0, 255, 0.3),
+            inset 0 0 4px rgba(211, 0, 255, 0.2);
+        text-shadow: 0 0 4px rgba(211, 0, 255, 0.4);
+    }
+
+    .action-run-btn:hover {
+        color: #000000;
+        background-color: var(--neon-purple);
+        box-shadow:
+            0 0 15px var(--neon-purple),
+            0 0 30px rgba(211, 0, 255, 0.6),
+            0 0 45px rgba(211, 0, 255, 0.3);
+        transform: translateY(-1px);
+    }
+
+    .action-run-btn:active {
+        transform: translateY(1px);
+    }
+
+    /* TWO-PANE APP LAYOUT */
+    .app-shell {
+        display: flex;
+        align-items: flex-start;
+        gap: 28px;
+        width: 100%;
+    }
+
+    .nav-select-wrap {
+        flex-shrink: 0;
+        width: 230px;
+        position: sticky;
+        top: 40px;
+    }
+
+    .nav-select-label {
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 2.5px;
+        color: var(--neon-purple);
+        font-weight: 800;
+        text-shadow: 0 0 8px rgba(211, 0, 255, 0.4);
+        margin-bottom: 14px;
+        padding-left: 4px;
+    }
+
+    .nav-select-table {
+        width: 100%;
+        border-collapse: separate;
+        border-spacing: 0 8px;
+    }
+
+    .nav-select-row {
+        cursor: pointer;
+    }
+
+    .nav-select-row td {
+        border-top: 1px solid var(--border-color);
+        border-bottom: 1px solid var(--border-color);
+        background-color: var(--panel-bg);
+        padding: 13px 10px;
+        vertical-align: middle;
+        transition: all 0.2s ease;
+    }
+
+    .nav-select-row td:first-child {
+        border-left: 1px solid var(--border-color);
+        border-top-left-radius: 10px;
+        border-bottom-left-radius: 10px;
+        padding-left: 14px;
+        width: 20px;
+    }
+
+    .nav-select-row td:last-child {
+        border-right: 1px solid var(--border-color);
+        border-top-right-radius: 10px;
+        border-bottom-right-radius: 10px;
+        text-align: right;
+        padding-right: 14px;
+        width: 18px;
+    }
+
+    .nav-row-dot {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background-color: var(--border-color);
+        transition: all 0.2s ease;
+    }
+
+    .nav-row-name {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.4px;
+        color: var(--text-main);
+        transition: all 0.2s ease;
+    }
+
+    .nav-row-arrow {
+        color: var(--text-main);
+        opacity: 0.3;
+        font-size: 16px;
+        transition: all 0.2s ease;
+    }
+
+    .nav-select-row:hover td {
+        border-color: rgba(0, 255, 255, 0.3);
+        background-color: rgba(0, 255, 255, 0.03);
+    }
+
+    .nav-select-row:hover .nav-row-dot {
+        background-color: var(--neon-cyan);
+        box-shadow: 0 0 6px var(--neon-cyan);
+    }
+
+    .nav-select-row.active-row-state td {
+        border-color: var(--neon-cyan);
+        background-color: rgba(0, 255, 255, 0.06);
+        box-shadow: inset 0 0 14px rgba(0, 255, 255, 0.08);
+    }
+
+    .nav-select-row.active-row-state .nav-row-dot {
+        background-color: var(--neon-cyan);
+        box-shadow: 0 0 8px var(--neon-cyan), 0 0 16px rgba(0, 255, 255, 0.6);
+    }
+
+    .nav-select-row.active-row-state .nav-row-name {
+        color: var(--neon-cyan);
+        text-shadow: 0 0 6px rgba(0, 255, 255, 0.4);
+    }
+
+    .nav-select-row.active-row-state .nav-row-arrow {
+        color: var(--neon-cyan);
+        opacity: 1;
+    }
+
+    .content-panel {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .section-view.section-enter-anim {
+        animation: section-enter-slide 0.35s ease;
+    }
+
+    @keyframes section-enter-slide {
+        from {
+            opacity: 0;
+            transform: translateX(18px);
+        }
+        to {
+            opacity: 1;
+            transform: translateX(0);
+        }
+    }
+
+    .back-to-modules-btn {
+        display: none;
+        align-items: center;
+        gap: 8px;
+        background-color: transparent;
+        border: 1px solid var(--neon-cyan);
+        color: var(--neon-cyan);
+        padding: 8px 16px;
+        font-size: 11px;
+        font-weight: 800;
+        border-radius: 6px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 20px;
+        transition: all 0.2s ease;
+        box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+        font-family: var(--font-sans);
+    }
+
+    .back-to-modules-btn:hover {
+        color: #000000;
+        background-color: var(--neon-cyan);
+        box-shadow: 0 0 15px var(--neon-cyan);
+    }
+
+    .header-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .copy-all-badge {
+        font-family: var(--font-sans);
+        font-size: 10px;
+        font-weight: 800;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        color: var(--neon-cyan);
+        background-color: transparent;
+        border: 1px solid var(--neon-cyan);
+        padding: 3px 9px;
+        border-radius: 4px;
+        cursor: pointer;
+        box-shadow: 0 0 6px rgba(0, 255, 255, 0.2);
+        transition: all 0.2s ease;
+    }
+
+    .copy-all-badge:hover {
+        background-color: var(--neon-cyan);
+        color: #000000;
+        box-shadow: 0 0 12px var(--neon-cyan);
+    }
+
+    .copy-all-badge.success-state {
+        background-color: var(--neon-purple);
+        border-color: var(--neon-purple);
+        color: #ffffff;
+        box-shadow: 0 0 12px var(--neon-purple);
+    }
+
+    /* EXPLAIN COMMANDS TOGGLE */
+    .explain-toggle-btn {
+        width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background-color: var(--box-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 14px 20px;
+        margin-top: 4px;
+        color: var(--text-main);
+        font-family: var(--font-sans);
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 0.3px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+    }
+
+    .explain-toggle-btn:hover {
+        border-color: rgba(211, 0, 255, 0.35);
+        color: var(--text-bold);
+        box-shadow: 0 0 12px rgba(211, 0, 255, 0.1);
+    }
+
+    .explain-toggle-btn.expanded-state {
+        border-color: var(--neon-purple);
+        color: var(--text-bold);
+        box-shadow: 0 0 12px rgba(211, 0, 255, 0.15);
+    }
+
+    .explain-toggle-icon {
+        color: var(--neon-purple);
+        font-size: 13px;
+        transition: transform 0.25s ease;
+        text-shadow: 0 0 6px rgba(211, 0, 255, 0.4);
+    }
+
+    .explain-toggle-btn.expanded-state .explain-toggle-icon {
+        transform: rotate(180deg);
+    }
+
+    .explain-panel {
+        max-height: 0;
+        overflow: hidden;
+        opacity: 0;
+        transition: max-height 0.35s ease, opacity 0.3s ease, margin-top 0.3s ease;
+    }
+
+    .explain-panel.expanded-state {
+        opacity: 1;
+        margin-top: 14px;
+    }
+
+    .explain-panel-inner {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+
+    .explain-item {
+        background-color: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-left: 2px solid var(--neon-purple);
+        border-radius: 8px;
+        padding: 16px 18px;
+    }
+
+    .explain-item-cmd {
+        font-family: var(--font-mono);
+        font-size: 13px;
+        font-weight: 700;
+        color: var(--neon-cyan);
+        text-shadow: 0 0 6px rgba(0, 255, 255, 0.3);
+        margin-bottom: 8px;
+    }
+
+    .explain-item-desc {
+        font-size: 13px;
+        line-height: 1.7;
+        color: var(--text-main);
+        opacity: 0.85;
+    }
+
+    .explain-highlight {
+        font-family: var(--font-mono);
+        color: var(--neon-cyan);
+        opacity: 1;
+    }
+
+    @media (max-width: 860px) {
+        .app-shell {
+            flex-direction: column;
+            align-items: stretch;
+        }
+
+        .nav-select-wrap {
+            position: static;
+            width: 100%;
+        }
+    }
+
+    /* Offline Description Info Panels */
+    .description-panel {
+        display: none;
+        width: 100%;
+        max-width: 780px;
+        background-color: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        padding: 32px;
+        box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+    }
+
+    .panel-back-btn {
+        background-color: transparent;
+        border: 1px solid var(--neon-cyan);
+        color: var(--neon-cyan);
+        padding: 8px 16px;
+        font-size: 11px;
+        font-weight: 800;
+        border-radius: 6px;
+        cursor: pointer;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+        margin-bottom: 24px;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        transition: all 0.2s ease;
+        box-shadow: 0 0 8px rgba(0, 255, 255, 0.2);
+    }
+
+    .panel-back-btn:hover {
+        color: #000000;
+        background-color: var(--neon-cyan);
+        box-shadow: 0 0 15px var(--neon-cyan);
+    }
+
+    .info-title {
+        font-size: 22px;
+        font-weight: 800;
+        color: var(--text-bold);
+        margin-top: 0;
+        margin-bottom: 16px;
+        letter-spacing: -0.5px;
+        border-bottom: 1px solid var(--border-color);
+        padding-bottom: 12px;
+    }
+
+    .info-body {
+        font-size: 15px;
+        line-height: 1.7;
+        color: var(--text-main);
+    }
+
+    .info-body p {
+        margin-top: 0;
+        margin-bottom: 16px;
+    }
+
+    .info-highlight {
+        color: var(--neon-cyan);
+        font-family: var(--font-mono);
+        font-weight: bold;
+        text-shadow: 0 0 5px rgba(0, 255, 255, 0.2);
+    }
+
+    .notification-toast {
+        position: fixed;
+        bottom: 30px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background-color: #0b0c10;
+        color: #ffffff;
+        border: 1px solid var(--neon-purple);
+        padding: 12px 28px;
+        border-radius: 30px;
+        font-size: 13px;
+        font-weight: 700;
+        letter-spacing: 1px;
+        box-shadow: 0 0 20px rgba(211, 0, 255, 0.4);
+        opacity: 0;
+        visibility: hidden;
+        transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275), opacity 0.2s ease;
+        z-index: 1000;
+    }
+
+    .notification-toast.active-state {
+        opacity: 1;
+        visibility: visible;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    .boot-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background-color: var(--border-color);
+    }
+    .boot-dot.dot-cyan { background-color: var(--neon-cyan); box-shadow: 0 0 6px var(--neon-cyan); }
+    .boot-dot.dot-purple { background-color: var(--neon-purple); box-shadow: 0 0 6px var(--neon-purple); }
+
+    /* LOGIN SCREEN */
+    #loginScreen {
+        position: fixed;
+        inset: 0;
+        background-color: var(--bg-dark);
+        background-image:
+            radial-gradient(at 10% 10%, rgba(0, 255, 255, 0.06) 0px, transparent 40%),
+            radial-gradient(at 90% 90%, rgba(211, 0, 255, 0.06) 0px, transparent 40%);
+        z-index: 2100;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+        transition: opacity 0.5s ease, visibility 0.5s ease;
+    }
+
+    .login-page-header {
+        text-align: center;
+        margin-bottom: 32px;
+    }
+
+    #loginScreen.hidden-state {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .login-terminal {
+        width: 100%;
+        max-width: 420px;
+        background-color: var(--panel-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 14px;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 30px rgba(211, 0, 255, 0.06);
+        overflow: hidden;
+        transition: border-color 0.4s ease, box-shadow 0.4s ease;
+    }
+
+    .login-terminal.success-glow-state {
+        border-color: var(--neon-cyan);
+        box-shadow:
+            0 8px 40px rgba(0, 0, 0, 0.6),
+            0 0 25px rgba(0, 255, 255, 0.35),
+            0 0 55px rgba(0, 255, 255, 0.15);
+        animation: success-card-pulse 1.1s ease-in-out;
+    }
+
+    @keyframes success-card-pulse {
+        0% { transform: scale(1); }
+        30% { transform: scale(1.015); }
+        60% { transform: scale(0.998); }
+        100% { transform: scale(1); }
+    }
+
+    .login-field-input.success-field-state {
+        border-color: var(--neon-cyan);
+        box-shadow: 0 0 12px rgba(0, 255, 255, 0.35);
+        color: var(--text-bold);
+        transition: all 0.35s ease;
+    }
+
+    .login-scan-line {
+        position: absolute;
+        left: 0;
+        right: 0;
+        height: 2px;
+        background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+        box-shadow: 0 0 12px var(--neon-cyan), 0 0 24px rgba(0, 255, 255, 0.6);
+        top: 0;
+        opacity: 0;
+        pointer-events: none;
+    }
+
+    .login-scan-line.scan-active-state {
+        animation: scan-sweep 0.9s ease-in-out;
+    }
+
+    @keyframes scan-sweep {
+        0% { top: 0; opacity: 0; }
+        10% { opacity: 1; }
+        90% { opacity: 1; }
+        100% { top: 100%; opacity: 0; }
+    }
+
+    .login-terminal-body {
+        position: relative;
+    }
+
+    .login-terminal-header {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 12px 16px;
+        border-bottom: 1px solid var(--border-color);
+        background-color: var(--box-bg);
+    }
+
+    .login-terminal-title {
+        margin-left: 8px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        color: var(--text-main);
+        opacity: 0.7;
+    }
+
+    .login-terminal-body {
+        padding: 32px 28px;
+    }
+
+    .login-lock-label {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 2px;
+        text-transform: uppercase;
+        color: var(--neon-purple);
+        text-shadow: 0 0 8px rgba(211, 0, 255, 0.4);
+        margin: 0 0 6px 0;
+    }
+
+    .login-heading {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text-bold);
+        margin: 0 0 24px 0;
+        letter-spacing: -0.3px;
+    }
+
+    .login-field-group {
+        margin-bottom: 18px;
+    }
+
+    .login-field-label {
+        display: block;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+        color: var(--text-main);
+        opacity: 0.7;
+        margin-bottom: 8px;
+    }
+
+    .login-field-input {
+        width: 100%;
+        background-color: var(--box-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 12px 14px;
+        font-family: var(--font-mono);
+        font-size: 14px;
+        color: var(--neon-cyan);
+        outline: none;
+        transition: all 0.2s ease;
+    }
+
+    .login-field-input:focus {
+        border-color: var(--neon-cyan);
+        box-shadow: 0 0 10px rgba(0, 255, 255, 0.2);
+    }
+
+    .login-field-input::placeholder {
+        color: var(--text-main);
+        opacity: 0.35;
+    }
+
+    .login-error-msg {
+        display: none;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: #ff4d6d;
+        text-shadow: 0 0 6px rgba(255, 77, 109, 0.4);
+        margin: -8px 0 16px 0;
+    }
+
+    .login-error-msg.error-visible-state {
+        display: block;
+    }
+
+    .login-submit-btn {
+        width: 100%;
+        background-color: transparent;
+        border: 2px solid var(--neon-cyan);
+        color: var(--neon-cyan);
+        padding: 12px 18px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        font-weight: 800;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        border-radius: 6px;
+        cursor: pointer;
+        box-shadow:
+            0 0 8px rgba(0, 255, 255, 0.3),
+            inset 0 0 4px rgba(0, 255, 255, 0.2);
+        transition: all 0.2s ease-in-out;
+        margin-top: 4px;
+    }
+
+    .login-submit-btn:hover {
+        color: #000000;
+        background-color: var(--neon-cyan);
+        box-shadow:
+            0 0 15px var(--neon-cyan),
+            0 0 30px rgba(0, 255, 255, 0.6);
+        transform: translateY(-1px);
+    }
+
+    .login-submit-btn.success-btn-state {
+        color: #000000;
+        background-color: var(--neon-cyan);
+        border-color: var(--neon-cyan);
+        box-shadow:
+            0 0 20px var(--neon-cyan),
+            0 0 45px rgba(0, 255, 255, 0.6);
+        cursor: default;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 8px;
+    }
+
+    .login-check-icon {
+        width: 16px;
+        height: 16px;
+        flex-shrink: 0;
+        opacity: 0;
+    }
+
+    .success-btn-state .login-check-icon {
+        opacity: 1;
+    }
+
+    .login-check-icon circle {
+        stroke: #000000;
+        stroke-width: 2;
+        fill: none;
+        stroke-dasharray: 63;
+        stroke-dashoffset: 63;
+        animation: check-circle-draw 0.4s ease forwards;
+    }
+
+    .login-check-icon path {
+        stroke: #000000;
+        stroke-width: 2.5;
+        stroke-linecap: round;
+        stroke-linejoin: round;
+        fill: none;
+        stroke-dasharray: 20;
+        stroke-dashoffset: 20;
+        animation: check-mark-draw 0.3s ease 0.35s forwards;
+    }
+
+    @keyframes check-circle-draw {
+        to { stroke-dashoffset: 0; }
+    }
+
+    @keyframes check-mark-draw {
+        to { stroke-dashoffset: 0; }
+    }
+
+    .login-hint {
+        margin-top: 18px;
+        font-family: var(--font-mono);
+        font-size: 11px;
+        color: var(--text-main);
+        opacity: 0.4;
+        text-align: center;
+    }
+
+    .login-footer-credit {
+        margin-top: 20px;
+        font-size: 11px;
+        text-transform: uppercase;
+        letter-spacing: 3px;
+        color: var(--neon-purple);
+        font-weight: 700;
+        text-shadow: 0 0 10px var(--neon-purple), 0 0 20px rgba(211, 0, 255, 0.5);
+        text-align: center;
+    }
+
+    /* SNAKE GAME */
+    .snake-game-wrap {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 18px;
+    }
+
+    .snake-hud {
+        display: flex;
+        gap: 28px;
+        font-family: var(--font-mono);
+        font-size: 12px;
+        letter-spacing: 1.5px;
+        text-transform: uppercase;
+        color: var(--text-main);
+        opacity: 0.8;
+    }
+
+    .snake-hud-item span {
+        display: inline-block;
+        margin-left: 6px;
+        color: var(--neon-cyan);
+        font-weight: 800;
+        font-size: 14px;
+        text-shadow: 0 0 8px rgba(0, 255, 255, 0.4);
+    }
+
+    .snake-board-wrap {
+        position: relative;
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 0 25px rgba(0, 255, 255, 0.06), inset 0 0 20px rgba(0, 0, 0, 0.4);
+    }
+
+    #snakeCanvas {
+        display: block;
+        background-color: var(--box-bg);
+    }
+
+    .snake-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(6, 9, 14, 0.9);
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 14px;
+        text-align: center;
+        padding: 24px;
+        transition: opacity 0.25s ease;
+    }
+
+    .snake-overlay.overlay-hidden-state {
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+    }
+
+    .snake-overlay-title {
+        font-size: 20px;
+        font-weight: 800;
+        color: var(--text-bold);
+        margin: 0;
+        text-shadow: 0 0 12px rgba(0, 255, 255, 0.35);
+    }
+
+    .snake-overlay-sub {
+        font-family: var(--font-mono);
+        font-size: 12px;
+        color: var(--text-main);
+        opacity: 0.7;
+        margin: 0;
+        max-width: 260px;
+        line-height: 1.6;
+    }
+
+    #snakeStartBtn {
+        width: auto;
+        padding: 10px 28px;
+    }
+
+    .snake-dpad {
+        display: grid;
+        grid-template-columns: repeat(3, 46px);
+        grid-template-rows: repeat(3, 46px);
+        gap: 6px;
+    }
+
+    .snake-dpad-btn {
+        background-color: var(--box-bg);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        color: var(--neon-cyan);
+        font-size: 15px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        box-shadow: 0 0 4px rgba(0, 255, 255, 0.1);
+    }
+
+    .snake-dpad-btn:hover {
+        border-color: var(--neon-cyan);
+        box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+        color: var(--text-bold);
+    }
+
+    .snake-dpad-btn:active {
+        transform: scale(0.92);
+    }
+
+    .login-3d-title {
+        display: inline-block;
+        animation: title-float 3.5s ease-in-out infinite;
+        transform-style: preserve-3d;
+        text-shadow:
+            1px 1px 0 var(--neon-purple),
+            2px 2px 0 var(--neon-purple),
+            3px 3px 0 var(--neon-purple),
+            4px 4px 0 var(--neon-purple),
+            5px 5px 10px rgba(0, 0, 0, 0.6),
+            0 0 20px rgba(0, 255, 255, 0.6),
+            0 0 40px rgba(0, 255, 255, 0.3);
+    }
+
+    @keyframes title-float {
+        0%, 100% {
+            transform: perspective(600px) rotateX(0deg) translateY(0px);
+            text-shadow:
+                1px 1px 0 var(--neon-purple),
+                2px 2px 0 var(--neon-purple),
+                3px 3px 0 var(--neon-purple),
+                4px 4px 0 var(--neon-purple),
+                5px 5px 10px rgba(0, 0, 0, 0.6),
+                0 0 20px rgba(0, 255, 255, 0.6),
+                0 0 40px rgba(0, 255, 255, 0.3);
+        }
+        50% {
+            transform: perspective(600px) rotateX(6deg) translateY(-6px);
+            text-shadow:
+                1px 2px 0 var(--neon-purple),
+                2px 4px 0 var(--neon-purple),
+                3px 6px 0 var(--neon-purple),
+                4px 8px 0 var(--neon-purple),
+                6px 10px 14px rgba(0, 0, 0, 0.6),
+                0 0 30px rgba(0, 255, 255, 0.9),
+                0 0 55px rgba(0, 255, 255, 0.5);
+        }
+    }
+</style>
 </head>
 <body>
-  <div class="wrap">
-    <div class="card">
-      <div class="card-inner">
-        <div class="topbar">
-          <div class="brand">
-            <h1><span class="dot"></span>Command Accessor</h1>
-            <p class="sub">A clean command launcher for Dart, Flutter, and JSX/React. Click to copy.</p>
-          </div>
 
-          <div class="search" role="search">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <path d="M10.5 18a7.5 7.5 0 1 1 0-15 7.5 7.5 0 0 1 0 15Z" stroke="rgba(236,246,255,.9)" stroke-width="2"/>
-              <path d="M16.2 16.2 21 21" stroke="rgba(236,246,255,.9)" stroke-width="2" stroke-linecap="round"/>
-            </svg>
-            <input id="filter" placeholder="Filter commands (e.g. run, build, format)..." />
-          </div>
-        </div>
-
-        <div class="grid">
-          <section class="panel dart" data-lang="dart">
-            <div class="panel-head">
-              <div class="lang">
-                <div class="badge" aria-hidden="true">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M7 17 17 7" stroke="rgba(46,233,198,.95)" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M9 15 7 17l-2-2 2-2 2 2Z" fill="rgba(46,233,198,.95)" opacity=".95"/>
-                    <path d="M17 7l2 2-2 2-2-2 2-2Z" fill="rgba(46,233,198,.95)" opacity=".95"/>
-                    <path d="M14 10 18 6" stroke="rgba(46,233,198,.95)" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M10 14 6 18" stroke="rgba(46,233,198,.95)" stroke-width="2" stroke-linecap="round"/>
-                  </svg>
-                </div>
-                <div class="lang-title">
-                  <strong>Dart</strong>
-                  <span>CLI & tooling</span>
-                </div>
-              </div>
-              <div class="count-pill"><i style="background: rgba(46,233,198,.7)"></i><span class="count">4</span></div>
-            </div>
-
-            <div class="panel-body">
-              <div class="cmd" data-text="dart --version">
-                <div class="code">dart --version</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-              <div class="cmd" data-text="dart run main.dart">
-                <div class="code">dart run main.dart</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-              <div class="cmd" data-text="dart format .">
-                <div class="code">dart format .</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-              <div class="cmd" data-text="dart analyze">
-                <div class="code">dart analyze</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-            </div>
-          </section>
-
-          <section class="panel flutter" data-lang="flutter">
-            <div class="panel-head">
-              <div class="lang">
-                <div class="badge" aria-hidden="true">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M7.2 7.2c4.8 3.5 8.8 1.7 9.6 4.6.7 2.5-1 4.8-3.6 5.3-2.6.5-5.3-.7-6.8-2.6" stroke="rgba(167,139,250,.95)" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M6 12h6l-2-3" stroke="rgba(167,139,250,.95)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                    <path d="M15 9.2 20 12l-5 2.8" stroke="rgba(167,139,250,.95)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-                  </svg>
-                </div>
-                <div class="lang-title">
-                  <strong>Flutter</strong>
-                  <span>Apps & builds</span>
-                </div>
-              </div>
-              <div class="count-pill"><i style="background: rgba(167,139,250,.7)"></i><span class="count">4</span></div>
-            </div>
-
-            <div class="panel-body">
-              <div class="cmd" data-text="flutter doctor">
-                <div class="code">flutter doctor</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-              <div class="cmd" data-text="flutter pub get">
-                <div class="code">flutter pub get</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-              <div class="cmd" data-text="flutter run">
-                <div class="code">flutter run</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-              <div class="cmd" data-text="flutter build apk">
-                <div class="code">flutter build apk</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-            </div>
-          </section>
-
-          <section class="panel jsx" data-lang="jsx">
-            <div class="panel-head">
-              <div class="lang">
-                <div class="badge" aria-hidden="true">
-                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none">
-                    <path d="M12 3c2.7 0 5 1.2 6.6 3.1" stroke="rgba(34,211,238,.95)" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M21 12c0 2.7-1.2 5-3.1 6.6" stroke="rgba(34,211,238,.95)" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M12 21c-2.7 0-5-1.2-6.6-3.1" stroke="rgba(34,211,238,.95)" stroke-width="2" stroke-linecap="round"/>
-                    <path d="M3 12c0-2.7 1.2-5 3.1-6.6" stroke="rgba(34,211,238,.95)" stroke-width="2" stroke-linecap="round"/>
-                    <circle cx="12" cy="12" r="2.2" fill="rgba(34,211,238,.95)" opacity=".95"/>
-                  </svg>
-                </div>
-                <div class="lang-title">
-                  <strong>JSX / React</strong>
-                  <span>Node scripts</span>
-                </div>
-              </div>
-              <div class="count-pill"><i style="background: rgba(34,211,238,.7)"></i><span class="count">4</span></div>
-            </div>
-
-            <div class="panel-body">
-              <div class="cmd" data-text="npm install">
-                <div class="code">npm install</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-              <div class="cmd" data-text="npm run dev">
-                <div class="code">npm run dev</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-              <div class="cmd" data-text="npm start">
-                <div class="code">npm start</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-              <div class="cmd" data-text="npm run build">
-                <div class="code">npm run build</div>
-                <button class="copy" data-copy-btn title="Copy"><span class="icon">⧉</span> Copy</button>
-              </div>
-            </div>
-          </section>
-        </div>
-      </div>
+<!-- LOGIN SCREEN -->
+<div id="loginScreen">
+    <div class="login-page-header">
+        <div class="author-tag">System Access</div>
+        <h1 class="login-3d-title">Welcome to Command Accessor</h1>
     </div>
-  </div>
+    <div class="login-terminal">
+        <div class="login-terminal-header">
+            <span class="boot-dot dot-cyan"></span>
+            <span class="boot-dot dot-purple"></span>
+            <span class="boot-dot"></span>
+        </div>
+        <div class="login-terminal-body">
+            <div class="login-scan-line" id="loginScanLine"></div>
+            <form id="loginForm" onsubmit="return false;">
+                <div class="login-field-group">
+                    <label class="login-field-label" for="loginUsername">Username</label>
+                    <input class="login-field-input" type="text" id="loginUsername" placeholder="enter username" autocomplete="off">
+                </div>
+                <div class="login-field-group">
+                    <label class="login-field-label" for="loginPassword">Password</label>
+                    <input class="login-field-input" type="password" id="loginPassword" placeholder="enter password" autocomplete="off" onkeydown="if(event.key==='Enter'){handleLoginSubmit(event);}">
+                </div>
+                <div class="login-error-msg" id="loginErrorMsg">&gt; access denied — check credentials and retry</div>
+                <button type="button" class="login-submit-btn" id="loginSubmitBtn" onclick="handleLoginSubmit(event)">
+                    <svg class="login-check-icon" viewBox="0 0 24 24">
+                        <circle cx="12" cy="12" r="10"></circle>
+                        <path d="M7 12.5l3 3 7-7"></path>
+                    </svg>
+                    <span id="loginBtnLabel">Authenticate</span>
+                </button>
+            </form>
+        </div>
+    </div>
+    <p class="login-footer-credit">by Vince Amigo</p>
+</div>
 
-  <div class="toast" id="toast">Copied!</div>
+<!-- MAIN GRID LISTVIEW (Ania nagtapok tanan) -->
+<div id="mainDashboardView" class="container" style="display: none;">
+    <header>
+        <div class="author-tag">Created by Vince Amigo</div>
+        <h1>Command Accessor</h1>
+    </header>
 
-  <script>
-    const toast = document.getElementById("toast");
-    function showToast(msg){
-      toast.textContent = msg;
-      toast.classList.add("show");
-      clearTimeout(showToast._t);
-      showToast._t = setTimeout(() => toast.classList.remove("show"), 900);
+    <div class="app-shell">
+        <!-- LEFT: MODULE SELECTION TABLE -->
+        <nav class="nav-select-wrap">
+            <div class="nav-select-label">Select Module</div>
+            <table class="nav-select-table">
+                <tbody>
+                    <tr class="nav-select-row" id="navRow-section-dart" onclick="selectSection('section-dart')">
+                        <td><span class="nav-row-dot"></span></td>
+                        <td class="nav-row-name">Dart</td>
+                        <td class="nav-row-arrow">&rsaquo;</td>
+                    </tr>
+                    <tr class="nav-select-row" id="navRow-section-flutter" onclick="selectSection('section-flutter')">
+                        <td><span class="nav-row-dot"></span></td>
+                        <td class="nav-row-name">Flutter</td>
+                        <td class="nav-row-arrow">&rsaquo;</td>
+                    </tr>
+                    <tr class="nav-select-row" id="navRow-section-react" onclick="selectSection('section-react')">
+                        <td><span class="nav-row-dot"></span></td>
+                        <td class="nav-row-name">JSX / React</td>
+                        <td class="nav-row-arrow">&rsaquo;</td>
+                    </tr>
+                    <tr class="nav-select-row" id="navRow-section-arcade" onclick="selectSection('section-arcade')">
+                        <td><span class="nav-row-dot"></span></td>
+                        <td class="nav-row-name">Arcade</td>
+                        <td class="nav-row-arrow">&rsaquo;</td>
+                    </tr>
+                </tbody>
+            </table>
+        </nav>
+
+        <!-- RIGHT: ACTIVE MODULE CONTENT -->
+        <div class="content-panel">
+            <button class="back-to-modules-btn" id="backToModulesBtn" onclick="showModuleList()">&larr; Back to Modules</button>
+
+            <!-- 1. [SECTION: DART] -->
+            <div class="section-card section-view" id="section-dart">
+                <div class="section-header">DART</div>
+                <div class="cmd-container-box">
+                    <div class="cmd-string">dart run bin/main.dart && dart format .</div>
+                    <button class="action-copy-btn" onclick="executeCopy(this, 'dart run bin/main.dart && dart format .')">Copy</button>
+                </div>
+            </div>
+
+            <!-- 2. [SECTION: FLUTTER] -->
+            <div class="section-card section-view" id="section-flutter" style="display: none;">
+                <div class="section-header clickable-header" onclick="openPanel('flutterInfoPanel')">
+                    <span>FLUTTER</span>
+                    <span class="header-actions">
+                        <button class="copy-all-badge" onclick="event.stopPropagation(); copyAllCommands('section-flutter', this)">Copy All</button>
+                        <span class="info-hint-badge">View Info</span>
+                    </span>
+                </div>
+                <div class="cmd-container-box">
+                    <div class="cmd-string">cd C:\Users\user\Documents\flutter_file\vince_proj</div>
+                    <button class="action-copy-btn" onclick="executeCopy(this, 'cd C:\\Users\\user\\Documents\\flutter_file\\vince_proj')">Copy</button>
+                </div>
+                <div class="cmd-container-box">
+                    <div class="cmd-string">flutter run</div>
+                    <button class="action-copy-btn" onclick="executeCopy(this, 'flutter run')">Copy</button>
+                </div>
+                <div class="cmd-container-box cmd-run-box">
+                    <div class="cmd-string cmd-string-note">Run in CMD — downloads a .bat that cd's in and launches flutter run</div>
+                    <button class="action-run-btn" onclick="downloadFlutterBat()">&#9654; Run</button>
+                </div>
+            </div>
+
+            <!-- 3. [SECTION: JSX / REACT] -->
+            <div class="section-card section-view" id="section-react" style="display: none;">
+                <div class="section-header clickable-header" onclick="openPanel('reactInfoPanel')">
+                    <span>JSX / REACT</span>
+                    <span class="header-actions">
+                        <button class="copy-all-badge" onclick="event.stopPropagation(); copyAllCommands('section-react', this)">Copy All</button>
+                        <span class="info-hint-badge">View Info</span>
+                    </span>
+                </div>
+                <div class="cmd-container-box">
+                    <div class="cmd-string">npm start</div>
+                    <button class="action-copy-btn" onclick="executeCopy(this, 'npm start')">Copy</button>
+                </div>
+                <div class="cmd-container-box">
+                    <div class="cmd-string">npm run build</div>
+                    <button class="action-copy-btn" onclick="executeCopy(this, 'npm run build')">Copy</button>
+                </div>
+
+                <button class="explain-toggle-btn" id="reactExplainToggleBtn" onclick="toggleExplainPanel('reactExplainPanel', this)">
+                    <span class="explain-toggle-label">Explain These Commands</span>
+                    <span class="explain-toggle-icon">&#9662;</span>
+                </button>
+                <div class="explain-panel" id="reactExplainPanel">
+                    <div class="explain-panel-inner">
+                        <div class="explain-item">
+                            <div class="explain-item-cmd">npm start</div>
+                            <div class="explain-item-desc">Launches React's built-in development server, usually at <span class="explain-highlight">http://localhost:3000</span>. It watches your project files and automatically refreshes the browser the moment you save a change, so you can see updates instantly while you're actively coding. This is for local development only — it's not meant to be used by real visitors.</div>
+                        </div>
+                        <div class="explain-item">
+                            <div class="explain-item-cmd">npm run build</div>
+                            <div class="explain-item-desc">Compiles and minifies your entire React app into optimized, production-ready static files inside a <span class="explain-highlight">/build</span> folder. Run this only when you're done developing — these are the files you actually upload to a real server or hosting platform to publish your app.</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. [SECTION: ARCADE] -->
+            <div class="section-card section-view" id="section-arcade" style="display: none;">
+                <div class="section-header">
+                    <span>ARCADE</span>
+                </div>
+                <div class="cmd-container-box">
+                    <div class="cmd-string">Snake — a quick break between builds</div>
+                    <button class="action-copy-btn" onclick="openPanel('snakeGamePanel')">Play</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- FLUTTER INFO PANEL -->
+<div id="flutterInfoPanel" class="description-panel">
+    <button class="panel-back-btn" onclick="closePanel('flutterInfoPanel')">&larr; Back to Vault</button>
+    <h2 class="info-title">What is Flutter &amp; Why Use It?</h2>
+    <div class="info-body">
+        <p>Flutter is Google's open-source UI software development kit. It allows you to build beautiful, natively compiled applications for Mobile (iOS &amp; Android), Web, and Desktop environments using only a single codebase.</p>
+        <p>Instead of writing separate Swift code for Apple and Java/Kotlin code for Android, you write your app UI layer just once using the <span class="info-highlight">Dart</span> programming language.</p>
+        <p>Your current layout contains two critical developer commands:</p>
+        <p>1. <span class="info-highlight">cd [path]</span>: Moves your console window directly into your dedicated workspace folder.</p>
+        <p>2. <span class="info-highlight">flutter run</span>: Starts the compiler, fires up hot-reload, and boots the project live onto an attached device or emulator screen.</p>
+    </div>
+</div>
+
+<!-- REACT / JSX INFO PANEL -->
+<div id="reactInfoPanel" class="description-panel">
+    <button class="panel-back-btn" onclick="closePanel('reactInfoPanel')">&larr; Back to Vault</button>
+    <h2 class="info-title">What is JSX &amp; React?</h2>
+    <div class="info-body">
+        <p>React is a popular open-source JavaScript library developed by Meta (Facebook) used for building interactive User Interfaces, specifically for single-page web applications.</p>
+        <p>JSX (JavaScript XML) is a syntax extension used directly inside React. It allows developers to write structural HTML-like elements inside JavaScript files natively, making components readable and fast to compile.</p>
+        <p>Your workspace controls include:</p>
+        <p>1. <span class="info-highlight">npm start</span>: Fires up your Node package runtime and starts a local web server (usually localhost:3000) for instant programming updates.</p>
+        <p>2. <span class="info-highlight">npm run build</span>: Compresses, cleans, and builds your code assets into high-performance plain files ready to deploy onto a server layout.</p>
+    </div>
+</div>
+
+<!-- SNAKE GAME PANEL -->
+<div id="snakeGamePanel" class="description-panel">
+    <button class="panel-back-btn" onclick="closePanel('snakeGamePanel')">&larr; Back to Vault</button>
+    <h2 class="info-title">Snake</h2>
+    <div class="snake-game-wrap">
+        <div class="snake-hud">
+            <div class="snake-hud-item">SCORE <span id="snakeScoreVal">0</span></div>
+            <div class="snake-hud-item">BEST <span id="snakeHighVal">0</span></div>
+        </div>
+        <div class="snake-board-wrap">
+            <canvas id="snakeCanvas" width="360" height="360"></canvas>
+            <div class="snake-overlay" id="snakeOverlay">
+                <p class="snake-overlay-title" id="snakeOverlayTitle">Snake</p>
+                <p class="snake-overlay-sub" id="snakeOverlaySub">Use arrow keys, WASD, or the D-pad below</p>
+                <button class="login-submit-btn" id="snakeStartBtn" onclick="startSnakeGame()">Start</button>
+            </div>
+        </div>
+        <div class="snake-dpad" aria-hidden="false">
+            <span></span>
+            <button class="snake-dpad-btn" onclick="setSnakeDirection('up')" aria-label="Move up">&#9650;</button>
+            <span></span>
+            <button class="snake-dpad-btn" onclick="setSnakeDirection('left')" aria-label="Move left">&#9664;</button>
+            <span></span>
+            <button class="snake-dpad-btn" onclick="setSnakeDirection('right')" aria-label="Move right">&#9654;</button>
+            <span></span>
+            <button class="snake-dpad-btn" onclick="setSnakeDirection('down')" aria-label="Move down">&#9660;</button>
+            <span></span>
+        </div>
+    </div>
+</div>
+
+<!-- TOAST NOTIFICATION -->
+<div id="toastNotification" class="notification-toast"><span id="toastMessage">SYSTEM COMMAND PIPED TO CLIPBOARD</span></div>
+
+<script>
+    function showSystemToast(message, durationMs) {
+        const toast = document.getElementById('toastNotification');
+        const toastMessage = document.getElementById('toastMessage');
+        const displayDuration = durationMs || 1800;
+
+        toastMessage.textContent = message;
+        toast.classList.add('active-state');
+
+        setTimeout(() => {
+            toast.classList.remove('active-state');
+        }, displayDuration);
     }
 
-    document.querySelectorAll("[data-copy-btn]").forEach(btn => {
-      btn.addEventListener("click", async () => {
-        const cmd = btn.parentElement?.querySelector(".code")?.textContent?.trim();
-        if(!cmd) return;
+    function executeCopy(buttonElement, rawText) {
+        navigator.clipboard.writeText(rawText).then(() => {
+            const initialLabel = buttonElement.innerText;
+            buttonElement.innerText = 'Copied';
+            buttonElement.classList.add('success-state');
 
-        try{
-          await navigator.clipboard.writeText(cmd);
-          showToast("Copied!");
-        }catch(e){
-          const ta = document.createElement("textarea");
-          ta.value = cmd;
-          document.body.appendChild(ta);
-          ta.select();
-          document.execCommand("copy");
-          document.body.removeChild(ta);
-          showToast("Copied!");
-        }
-      });
-    });
+            showSystemToast('SYSTEM COMMAND PIPED TO CLIPBOARD');
 
-    const filter = document.getElementById("filter");
-    const panels = Array.from(document.querySelectorAll(".panel"));
+            setTimeout(() => {
+                buttonElement.innerText = initialLabel;
+                buttonElement.classList.remove('success-state');
+            }, 1800);
+        }).catch(err => {
+            console.error('Clipboard execution error: ', err);
+        });
+    }
 
-    filter.addEventListener("input", () => {
-      const q = filter.value.trim().toLowerCase();
+    function downloadFlutterBat() {
+        const batLines = [
+            '@echo off',
+            'cd /d "C:\\Users\\user\\Documents\\flutter_file\\vince_proj"',
+            'flutter run',
+            'pause'
+        ];
+        const batContent = batLines.join('\r\n');
 
-      panels.forEach(panel => {
-        const cmds = Array.from(panel.querySelectorAll(".cmd"));
-        let anyVisible = false;
+        const blob = new Blob([batContent], { type: 'text/plain' });
+        const url = URL.createObjectURL(blob);
 
-        cmds.forEach(cmd => {
-          const text = cmd.getAttribute("data-text") || cmd.innerText || "";
-          const visible = !q || text.toLowerCase().includes(q);
-          cmd.style.display = visible ? "" : "none";
-          if(visible) anyVisible = true;
+        const link = document.createElement('a');
+        link.href = url;
+        link.download = 'run-flutter.bat';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        URL.revokeObjectURL(url);
+
+        showSystemToast('.BAT DOWNLOADED — DOUBLE-CLICK TO LAUNCH CMD', 2400);
+    }
+
+    let currentSectionId = null;
+
+    function isMobileViewport() {
+        return window.matchMedia('(max-width: 860px)').matches;
+    }
+
+    function renderSectionViews() {
+        document.querySelectorAll('.section-view').forEach(view => {
+            const isActive = view.id === currentSectionId;
+            view.style.display = isActive ? 'block' : 'none';
+
+            if (isActive) {
+                view.classList.remove('section-enter-anim');
+                void view.offsetWidth;
+                view.classList.add('section-enter-anim');
+            }
         });
 
-        panel.style.display = anyVisible ? "" : "none";
-      });
+        document.querySelectorAll('.nav-select-row').forEach(row => {
+            row.classList.remove('active-row-state');
+        });
+
+        if (currentSectionId) {
+            const activeRow = document.getElementById('navRow-' + currentSectionId);
+            if (activeRow) {
+                activeRow.classList.add('active-row-state');
+            }
+        }
+    }
+
+    function enterMobileDrilldown() {
+        document.querySelector('.nav-select-wrap').style.display = 'none';
+        document.getElementById('backToModulesBtn').style.display = 'inline-flex';
+        document.querySelector('.content-panel').style.display = 'block';
+    }
+
+    function showModuleList() {
+        currentSectionId = null;
+        document.querySelector('.nav-select-wrap').style.display = 'block';
+        document.getElementById('backToModulesBtn').style.display = 'none';
+        document.querySelectorAll('.section-view').forEach(view => {
+            view.style.display = 'none';
+        });
+        document.querySelectorAll('.nav-select-row').forEach(row => {
+            row.classList.remove('active-row-state');
+        });
+    }
+
+    function selectSection(sectionId) {
+        currentSectionId = sectionId;
+        renderSectionViews();
+
+        if (isMobileViewport()) {
+            enterMobileDrilldown();
+        }
+    }
+
+    function reconcileResponsiveLayout() {
+        if (isMobileViewport()) {
+            if (currentSectionId) {
+                enterMobileDrilldown();
+            } else {
+                showModuleList();
+            }
+        } else {
+            document.querySelector('.nav-select-wrap').style.display = 'block';
+            document.getElementById('backToModulesBtn').style.display = 'none';
+            document.querySelector('.content-panel').style.display = 'block';
+
+            if (!currentSectionId) {
+                currentSectionId = 'section-dart';
+            }
+            renderSectionViews();
+        }
+    }
+
+    let responsiveResizeTimer = null;
+    window.addEventListener('resize', () => {
+        clearTimeout(responsiveResizeTimer);
+        responsiveResizeTimer = setTimeout(reconcileResponsiveLayout, 150);
     });
-  </script>
+
+    function copyAllCommands(sectionId, buttonElement) {
+        const section = document.getElementById(sectionId);
+        const commandEls = section.querySelectorAll('.cmd-string:not(.cmd-string-note)');
+        const commandText = Array.from(commandEls)
+            .map(el => el.textContent.trim())
+            .join('\n');
+
+        navigator.clipboard.writeText(commandText).then(() => {
+            const initialLabel = buttonElement.textContent;
+            buttonElement.textContent = 'Copied!';
+            buttonElement.classList.add('success-state');
+
+            showSystemToast('ALL MODULE COMMANDS COPIED');
+
+            setTimeout(() => {
+                buttonElement.textContent = initialLabel;
+                buttonElement.classList.remove('success-state');
+            }, 1800);
+        }).catch(err => {
+            console.error('Clipboard execution error: ', err);
+        });
+    }
+
+    function toggleExplainPanel(panelId, buttonElement) {
+        const panel = document.getElementById(panelId);
+        const label = buttonElement.querySelector('.explain-toggle-label');
+        const isExpanded = buttonElement.classList.contains('expanded-state');
+
+        if (isExpanded) {
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+            requestAnimationFrame(() => {
+                requestAnimationFrame(() => {
+                    panel.style.maxHeight = '0px';
+                });
+            });
+            panel.classList.remove('expanded-state');
+            buttonElement.classList.remove('expanded-state');
+            label.textContent = 'Explain These Commands';
+        } else {
+            buttonElement.classList.add('expanded-state');
+            panel.classList.add('expanded-state');
+            panel.style.maxHeight = panel.scrollHeight + 'px';
+            label.textContent = 'Hide Explanation';
+        }
+    }
+
+    function openPanel(panelId) {
+        document.getElementById('mainDashboardView').style.display = 'none';
+        document.getElementById(panelId).style.display = 'block';
+    }
+
+
+    function closePanel(panelId) {
+        document.getElementById(panelId).style.display = 'none';
+        document.getElementById('mainDashboardView').style.display = 'block';
+
+        if (panelId === 'snakeGamePanel') {
+            stopSnakeGame();
+        }
+    }
+
+    /* LOGIN GATE */
+    let loginSubmitInProgress = false;
+
+    function handleLoginSubmit(event) {
+        if (event && event.preventDefault) {
+            event.preventDefault();
+        }
+
+        if (loginSubmitInProgress) {
+            return;
+        }
+        loginSubmitInProgress = true;
+
+        const loginScreen = document.getElementById('loginScreen');
+        const loginTerminal = document.querySelector('.login-terminal');
+        const usernameInput = document.getElementById('loginUsername');
+        const passwordInput = document.getElementById('loginPassword');
+        const scanLine = document.getElementById('loginScanLine');
+        const submitBtn = document.getElementById('loginSubmitBtn');
+        const btnLabel = document.getElementById('loginBtnLabel');
+
+        loginTerminal.classList.add('success-glow-state');
+        usernameInput.classList.add('success-field-state');
+        passwordInput.classList.add('success-field-state');
+        scanLine.classList.add('scan-active-state');
+
+        submitBtn.classList.add('success-btn-state');
+        btnLabel.textContent = 'Access Granted';
+
+        setTimeout(() => {
+            loginScreen.classList.add('hidden-state');
+
+            setTimeout(() => {
+                loginScreen.style.display = 'none';
+                enterVault();
+            }, 500);
+        }, 950);
+    }
+
+    function enterVault() {
+        document.getElementById('mainDashboardView').style.display = 'block';
+
+        if (isMobileViewport()) {
+            showModuleList();
+        } else {
+            selectSection('section-dart');
+        }
+    }
+
+    /* SNAKE GAME ENGINE */
+    const SNAKE_GRID_SIZE = 18;
+    const SNAKE_CELL_SIZE = 20;
+    const SNAKE_BASE_SPEED_MS = 130;
+    const SNAKE_MIN_SPEED_MS = 70;
+
+    let snakeCanvasCtx = null;
+    let snakeState = null;
+    let snakeGameRunning = false;
+    let snakeLoopTimeoutId = null;
+    let snakeHighScore = 0;
+    let snakeKeyListenerBound = false;
+
+    function getSnakeCanvasContext() {
+        if (!snakeCanvasCtx) {
+            const canvas = document.getElementById('snakeCanvas');
+            snakeCanvasCtx = canvas.getContext('2d');
+        }
+        return snakeCanvasCtx;
+    }
+
+    function createInitialSnakeState() {
+        const startX = Math.floor(SNAKE_GRID_SIZE / 2);
+        const startY = Math.floor(SNAKE_GRID_SIZE / 2);
+
+        return {
+            snake: [
+                { x: startX - 1, y: startY },
+                { x: startX - 2, y: startY },
+                { x: startX - 3, y: startY }
+            ],
+            direction: 'right',
+            nextDirection: 'right',
+            food: null,
+            score: 0,
+            speed: SNAKE_BASE_SPEED_MS
+        };
+    }
+
+    function placeSnakeFood(state) {
+        let candidate;
+        let isOnSnake;
+
+        do {
+            candidate = {
+                x: Math.floor(Math.random() * SNAKE_GRID_SIZE),
+                y: Math.floor(Math.random() * SNAKE_GRID_SIZE)
+            };
+            isOnSnake = state.snake.some(seg => seg.x === candidate.x && seg.y === candidate.y);
+        } while (isOnSnake);
+
+        state.food = candidate;
+    }
+
+    function drawSnakeBoard() {
+        const ctx = getSnakeCanvasContext();
+        const pixelSize = SNAKE_GRID_SIZE * SNAKE_CELL_SIZE;
+
+        ctx.clearRect(0, 0, pixelSize, pixelSize);
+
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+        ctx.lineWidth = 1;
+        for (let i = 1; i < SNAKE_GRID_SIZE; i++) {
+            const pos = i * SNAKE_CELL_SIZE;
+            ctx.beginPath();
+            ctx.moveTo(pos, 0);
+            ctx.lineTo(pos, pixelSize);
+            ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(0, pos);
+            ctx.lineTo(pixelSize, pos);
+            ctx.stroke();
+        }
+
+        if (snakeState.food) {
+            const fx = snakeState.food.x * SNAKE_CELL_SIZE + SNAKE_CELL_SIZE / 2;
+            const fy = snakeState.food.y * SNAKE_CELL_SIZE + SNAKE_CELL_SIZE / 2;
+            const radius = SNAKE_CELL_SIZE / 2.6;
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(211, 0, 255, 0.9)';
+            ctx.shadowBlur = 14;
+            ctx.fillStyle = '#d300ff';
+            ctx.beginPath();
+            ctx.arc(fx, fy, radius, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.restore();
+        }
+
+        snakeState.snake.forEach((segment, index) => {
+            const x = segment.x * SNAKE_CELL_SIZE;
+            const y = segment.y * SNAKE_CELL_SIZE;
+            const pad = 2;
+            const isHead = index === 0;
+
+            ctx.save();
+            ctx.shadowColor = 'rgba(0, 255, 255, 0.8)';
+            ctx.shadowBlur = isHead ? 12 : 6;
+            ctx.fillStyle = isHead ? '#00ffff' : 'rgba(0, 255, 255, 0.65)';
+            ctx.beginPath();
+            ctx.roundRect(
+                x + pad,
+                y + pad,
+                SNAKE_CELL_SIZE - pad * 2,
+                SNAKE_CELL_SIZE - pad * 2,
+                4
+            );
+            ctx.fill();
+            ctx.restore();
+        });
+    }
+
+    function isOppositeSnakeDirection(a, b) {
+        return (
+            (a === 'up' && b === 'down') ||
+            (a === 'down' && b === 'up') ||
+            (a === 'left' && b === 'right') ||
+            (a === 'right' && b === 'left')
+        );
+    }
+
+    function setSnakeDirection(dir) {
+        if (!snakeGameRunning || !snakeState) {
+            return;
+        }
+        if (isOppositeSnakeDirection(snakeState.direction, dir)) {
+            return;
+        }
+        snakeState.nextDirection = dir;
+    }
+
+    function handleSnakeKeydown(event) {
+        const panel = document.getElementById('snakeGamePanel');
+        if (!panel || panel.style.display !== 'block') {
+            return;
+        }
+
+        const keyMap = {
+            ArrowUp: 'up', w: 'up', W: 'up',
+            ArrowDown: 'down', s: 'down', S: 'down',
+            ArrowLeft: 'left', a: 'left', A: 'left',
+            ArrowRight: 'right', d: 'right', D: 'right'
+        };
+
+        const dir = keyMap[event.key];
+        if (!dir) {
+            return;
+        }
+
+        event.preventDefault();
+
+        if (!snakeGameRunning) {
+            startSnakeGame();
+            return;
+        }
+
+        setSnakeDirection(dir);
+    }
+
+    function stepSnakeGame() {
+        const state = snakeState;
+        state.direction = state.nextDirection;
+
+        const head = state.snake[0];
+        let newHead = { x: head.x, y: head.y };
+
+        if (state.direction === 'up') newHead.y -= 1;
+        if (state.direction === 'down') newHead.y += 1;
+        if (state.direction === 'left') newHead.x -= 1;
+        if (state.direction === 'right') newHead.x += 1;
+
+        const hitWall =
+            newHead.x < 0 || newHead.x >= SNAKE_GRID_SIZE ||
+            newHead.y < 0 || newHead.y >= SNAKE_GRID_SIZE;
+        const hitSelf = state.snake.some(seg => seg.x === newHead.x && seg.y === newHead.y);
+
+        if (hitWall || hitSelf) {
+            endSnakeGame();
+            return;
+        }
+
+        state.snake.unshift(newHead);
+
+        const ateFood = state.food && newHead.x === state.food.x && newHead.y === state.food.y;
+        if (ateFood) {
+            state.score += 10;
+            state.speed = Math.max(SNAKE_MIN_SPEED_MS, SNAKE_BASE_SPEED_MS - Math.floor(state.score / 50) * 8);
+            document.getElementById('snakeScoreVal').textContent = state.score;
+            placeSnakeFood(state);
+        } else {
+            state.snake.pop();
+        }
+
+        drawSnakeBoard();
+    }
+
+    function scheduleSnakeTick() {
+        snakeLoopTimeoutId = setTimeout(() => {
+            if (!snakeGameRunning) {
+                return;
+            }
+            stepSnakeGame();
+            if (snakeGameRunning) {
+                scheduleSnakeTick();
+            }
+        }, snakeState.speed);
+    }
+
+    function startSnakeGame() {
+        if (!snakeKeyListenerBound) {
+            document.addEventListener('keydown', handleSnakeKeydown);
+            snakeKeyListenerBound = true;
+        }
+
+        snakeState = createInitialSnakeState();
+        placeSnakeFood(snakeState);
+        snakeGameRunning = true;
+
+        document.getElementById('snakeScoreVal').textContent = '0';
+        document.getElementById('snakeOverlay').classList.add('overlay-hidden-state');
+
+        drawSnakeBoard();
+
+        if (snakeLoopTimeoutId) {
+            clearTimeout(snakeLoopTimeoutId);
+        }
+        scheduleSnakeTick();
+    }
+
+    function stopSnakeGame() {
+        snakeGameRunning = false;
+        if (snakeLoopTimeoutId) {
+            clearTimeout(snakeLoopTimeoutId);
+            snakeLoopTimeoutId = null;
+        }
+    }
+
+    function endSnakeGame() {
+        stopSnakeGame();
+
+        if (snakeState.score > snakeHighScore) {
+            snakeHighScore = snakeState.score;
+        }
+        document.getElementById('snakeHighVal').textContent = snakeHighScore;
+
+        document.getElementById('snakeOverlayTitle').textContent = 'Game over';
+        document.getElementById('snakeOverlaySub').textContent =
+            'Score: ' + snakeState.score + ' — Best: ' + snakeHighScore;
+        document.getElementById('snakeStartBtn').textContent = 'Play again';
+        document.getElementById('snakeOverlay').classList.remove('overlay-hidden-state');
+    }
+</script>
+
 </body>
 </html>
